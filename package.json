@@ -11,7 +11,9 @@
     "react-component"
   ],
   "files": [
-    "dist",
+    "dist/src",
+    "dist/index.d.ts",
+    "dist/style.css",
     "README.md",
     "LICENSE"
   ],
@@ -19,6 +21,13 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/src/index.js",
   "style": "./dist/style.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
   "scripts": {
     "start": "npm run dev",
     "dev": "vite build && (cd ./example && vite)",

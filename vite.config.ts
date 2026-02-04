@@ -3,7 +3,14 @@ import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
-  plugins: [react(), dts()],
+  plugins: [
+    react(),
+    dts({
+      entryRoot: "src",
+      insertTypesEntry: true,
+      exclude: ["**/node_modules/**", "dist/**"],
+    }),
+  ],
   build: {
     minify: false,
     lib: {
@@ -14,17 +21,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         preserveModules: true,
+        preserveModulesRoot: "src",
       },
-      external: [
-        "react",
-        "react/jsx-runtime",
-        "react-dom",
-        "react-dom/client",
-        "react-rnd",
-        "pdfjs-dist",
-        "pdfjs-dist/web",
-        "debounce",
-      ],
+      external: (id) => {
+        if (id === "react" || id.startsWith("react/")) return true;
+        if (id === "react-dom" || id.startsWith("react-dom/")) return true;
+        if (id === "react-rnd") return true;
+        if (id === "ts-debounce") return true;
+        if (id.startsWith("pdfjs-dist")) return true;
+        return false;
+      },
     },
   },
 });
