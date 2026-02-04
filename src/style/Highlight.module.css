@@ -2,11 +2,19 @@
   position: absolute;
 }
 
-.emoji {
+.commentIcon {
   position: absolute;
-  color: black;
+  color: #111827;
   opacity: 1;
-  font-size: 28px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .parts {
@@ -16,10 +24,62 @@
 .part {
   cursor: pointer;
   position: absolute;
-  background: rgba(255, 226, 143, 1);
+  background: rgba(255, 212, 0, 0.4);
   transition: background 0.3s;
+}
+
+.part:hover {
+  background: rgba(255, 212, 0, 0.5);
 }
 
 .scrolledTo .part {
   background: #ff4141;
+}
+
+.popup {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  font-size: 12px;
+  max-width: 240px;
+}
+
+.popupText {
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  color: #111827;
+}
+
+.popupTextarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.popupActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: flex-end;
+}
+
+.popupButton {
+  background: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.popupButtonSecondary {
+  background: #f3f4f6;
+  color: #111827;
 }

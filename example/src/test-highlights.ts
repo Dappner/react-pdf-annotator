@@ -25,10 +25,7 @@ export const testHighlights = {
         ],
         pageNumber: 1,
       },
-      comment: {
-        text: "Flow or TypeScript?",
-        emoji: "🔥",
-      },
+      comment: "Flow or TypeScript?",
       id: "8245652131754351",
     },
     {
@@ -56,10 +53,7 @@ export const testHighlights = {
         ],
         pageNumber: 1,
       },
-      comment: {
-        text: "impressive",
-        emoji: "",
-      },
+      comment: "impressive",
       id: "812807243318874",
     },
     {
@@ -98,10 +92,7 @@ export const testHighlights = {
         ],
         pageNumber: 1,
       },
-      comment: {
-        text: "immersive coding experience!",
-        emoji: "",
-      },
+      comment: "immersive coding experience!",
       id: "2599712881412761",
     },
     {
@@ -122,10 +113,7 @@ export const testHighlights = {
         rects: [],
         pageNumber: 3,
       },
-      comment: {
-        text: "lisp!",
-        emoji: "😱",
-      },
+      comment: "lisp!",
       id: "9120567402727258",
     },
     {
@@ -164,10 +152,7 @@ export const testHighlights = {
         ],
         pageNumber: 4,
       },
-      comment: {
-        text: "",
-        emoji: "",
-      },
+      comment: "",
       id: "32839601376722394",
     },
     {
@@ -188,15 +173,12 @@ export const testHighlights = {
         rects: [],
         pageNumber: 24,
       },
-      comment: {
-        text: "",
-        emoji: "",
-      },
+      comment: "",
       id: "46570518065661615",
     },
     {
       id: "46570518065661616",
-      comment: { text: "Fast type checking?!?!", emoji: "😱" },
+      comment: "Fast type checking?!?!",
       content: {
         text: "Fast type checking.The key toFlow’s speed is modularity: the ability to break the analysis intofile-sized chunks that can be assembled later. Fortunately, JavaScript is already written using files4Avik Chaudhuri, Panagiotis Vekris, Sam Goldman, Marshall Roch, and Gabriel Levias modules, so we modularize our analysis simply by asking that modules have explicitly typedsignatures. (We still infer types for the vast majority of code “local” to modules.) Coincidentally,developers consider this good software engineering practice anyway.",
       },
@@ -307,10 +289,7 @@ export const testHighlights = {
         ],
         pageNumber: 1,
       },
-      comment: {
-        text: "Static Single Assignment",
-        emoji: "😎",
-      },
+      comment: "Static Single Assignment",
       id: "29668244118038056",
     },
   ],

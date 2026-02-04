@@ -4,13 +4,20 @@ import type { LTWHP } from "../types";
 
 interface Props {
   children: JSX.Element | null;
-  style: { top: number; left: number; bottom: number };
+  style: {
+    top: number;
+    left: number;
+    bottom: number;
+    highlightWidth?: number;
+  };
   scrollTop: number;
   pageBoundingRect: LTWHP;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-function clamp(value: number, left: number, right: number) {
-  return Math.min(Math.max(value, left), right);
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
 export function TipContainer({
@@ -18,6 +25,8 @@ export function TipContainer({
   style,
   scrollTop,
   pageBoundingRect,
+  onMouseEnter,
+  onMouseLeave,
 }: Props) {
   const [height, setHeight] = useState(0);
   const [width, setWidth] = useState(0);
@@ -42,7 +51,15 @@ export function TipContainer({
 
   const top = shouldMove ? style.bottom + 5 : style.top - height - 5;
 
-  const left = clamp(style.left - width / 2, 0, pageBoundingRect.width - width);
+  // Center the popup on the highlight, then clamp to page bounds
+  const highlightCenter = style.left + (style.highlightWidth ?? 0) / 2;
+  const idealLeft = highlightCenter - width / 2;
+  const pageRight = pageBoundingRect.left + pageBoundingRect.width;
+  const left = clamp(
+    idealLeft,
+    pageBoundingRect.left,
+    Math.max(pageBoundingRect.left, pageRight - width),
+  );
 
   const handleUpdate = useCallback(() => {
     setWidth(0);
@@ -71,6 +88,8 @@ export function TipContainer({
         left,
       }}
       ref={nodeRef}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {childrenWithProps}
     </div>

@@ -44,25 +44,46 @@ export interface HighlightContent {
   content: Content;
 }
 
-export interface Comment {
-  text: string;
-  emoji: string;
-}
+export type Comment = string;
 
 export interface HighlightComment {
-  comment: Comment;
+  comment?: Comment;
 }
 
 export interface NewHighlight extends HighlightContent, HighlightComment {
   position: ScaledPosition;
 }
 
-export interface IHighlight extends NewHighlight {
-  id: string;
-}
+export interface IHighlight extends HighlightBase {}
 
 export interface ViewportHighlight extends HighlightContent, HighlightComment {
   position: Position;
+}
+
+export interface HighlightBase extends NewHighlight {
+  id: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface HighlightPayload {
+  id?: string;
+  content: Content;
+  position: ScaledPosition;
+  comment?: Comment;
+  color?: string;
+  meta?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface HighlightCreatePayload {
+  content: Content;
+  position: ScaledPosition;
+}
+
+export interface HighlightHooks {
+  onCreate?: (highlight: HighlightCreatePayload) => void;
+  onUpdate?: (id: string, patch: Partial<HighlightPayload>) => void;
+  onDelete?: (id: string) => void;
 }
 
 export interface Viewport {

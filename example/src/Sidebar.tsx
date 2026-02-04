@@ -49,7 +49,7 @@ export function Sidebar({
             }}
           >
             <div>
-              <strong>{highlight.comment.text}</strong>
+              {highlight.comment ? <strong>{highlight.comment}</strong> : null}
               {highlight.content.text ? (
                 <blockquote style={{ marginTop: "0.5rem" }}>
                   {`${highlight.content.text.slice(0, 90).trim()}…`}

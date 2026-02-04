@@ -1,8 +1,8 @@
 {
   "name": "react-pdf-highlighter",
-  "version": "8.0.0-rc.0",
-  "description": "Set of React components for PDF annotation",
-  "author": "Artem Tyurin <artem.tyurin@gmail.com>",
+  "version": "0.1",
+  "description": "Extended Set of React components for PDF annotation",
+  "author": "Nicklas Astorian",
   "license": "MIT",
   "keywords": [
     "pdf",
@@ -22,6 +22,7 @@
   "scripts": {
     "start": "npm run dev",
     "dev": "vite build && (cd ./example && vite)",
+    "dev:quote-demo": "VITE_DEMO=quote npm run dev",
     "build": "npm run clean && npm run compile && vite build && npm run build:example",
     "compile": "tsc --noEmit && (cd ./example && tsc --noEmit)",
     "build:example": "vite build && (cd ./example && vite build)",
@@ -43,10 +44,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agentcooper/react-pdf-highlighter.git"
+    "url": "git+https://github.com/Dappner/react-pdf-highlighter.git"
   },
   "bugs": {
-    "url": "https://github.com/agentcooper/react-pdf-highlighter/issues"
+    "url": "https://github.com/Dappner/react-pdf-highlighter/issues"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.0",
@@ -61,5 +62,5 @@
     "vite": "^5.3.3",
     "vite-plugin-dts": "^4.1.1"
   },
-  "homepage": "https://github.com/agentcooper/react-pdf-highlighter#readme"
+  "homepage": "https://github.com/Dappner/react-pdf-highlighter#readme"
 }

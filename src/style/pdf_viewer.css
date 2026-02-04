@@ -18,7 +18,7 @@ html
   body
   .textLayer
   > div:not(.PdfHighlighter__highlight-layer):not(.Highlight):not(
-    .Highlight__emoji
+    .Highlight__comment-icon
   ) {
   opacity: 1;
   mix-blend-mode: multiply;
