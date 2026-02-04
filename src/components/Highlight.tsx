@@ -7,6 +7,8 @@ interface Props {
     rects: Array<LTWHP>;
   };
   onClick?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   onMouseOver?: () => void;
   onMouseOut?: () => void;
   onContextMenu?: (event: React.MouseEvent) => void;
@@ -17,6 +19,8 @@ interface Props {
 export function Highlight({
   position,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   onMouseOver,
   onMouseOut,
   onContextMenu,
@@ -28,6 +32,8 @@ export function Highlight({
   return (
     <div
       className={`Highlight ${styles.highlight} ${isScrolledTo ? styles.scrolledTo : ""}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {comment ? (
         <div
@@ -60,6 +66,8 @@ export function Highlight({
           <div
             onMouseOver={onMouseOver}
             onMouseOut={onMouseOut}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             onClick={onClick}
             onContextMenu={onContextMenu}
             // biome-ignore lint/suspicious/noArrayIndexKey: We can use position hash at some point in future

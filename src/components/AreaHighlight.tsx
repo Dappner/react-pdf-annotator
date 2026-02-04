@@ -7,6 +7,8 @@ interface Props {
   highlight: ViewportHighlight;
   onChange: (rect: LTWHP) => void;
   isScrolledTo: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export function AreaHighlight({

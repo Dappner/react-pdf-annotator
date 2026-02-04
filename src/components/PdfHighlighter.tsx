@@ -71,6 +71,8 @@ interface Props<T_HT> extends HighlightHooks {
     isScrolledTo: boolean,
   ) => JSX.Element;
   renderPopup?: (highlight: T_ViewportHighlight<T_HT>) => JSX.Element | null;
+  onHighlightHover?: (highlight: T_ViewportHighlight<T_HT>) => void;
+  onHighlightBlur?: (highlight: T_ViewportHighlight<T_HT>) => void;
   highlights: Array<T_HT>;
   onScrollChange: () => void;
   scrollRef: (scrollTo: (highlight: T_HT) => void) => void;
@@ -123,6 +125,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   } = {};
   showTipTimeout: ReturnType<typeof setTimeout> | null = null;
   hideTipTimeout: ReturnType<typeof setTimeout> | null = null;
+  flashTimeout: ReturnType<typeof setTimeout> | null = null;
   textLayerRenderedPages = new Set<number>();
   hasRenderedOnLoad = false;
   unsubscribe = () => {};
@@ -176,6 +179,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       this.init();
       return;
     }
+    if (prevProps.pdfScaleValue !== this.props.pdfScaleValue) {
+      this.handleScaleValue();
+    }
     if (prevProps.highlights !== this.props.highlights) {
       this.renderHighlightLayers();
     }
@@ -221,6 +227,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     }
     if (this.hideTipTimeout) {
       clearTimeout(this.hideTipTimeout);
+    }
+    if (this.flashTimeout) {
+      clearTimeout(this.flashTimeout);
     }
   }
 
@@ -506,22 +515,33 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     this.viewer.container.removeEventListener("scroll", this.onScroll);
 
     const pageViewport = this.viewer.getPageView(pageNumber - 1).viewport;
+    const container = this.viewer.container;
+    const pageView = this.viewer.getPageView(pageNumber - 1);
+    const pageNode = pageView?.div;
+    const viewportRect = scaledToViewport(
+      boundingRect,
+      pageViewport,
+      usePdfCoordinates,
+    );
 
-    const scrollMargin = 10;
-
-    this.viewer.scrollPageIntoView({
-      pageNumber,
-      destArray: [
-        null,
-        { name: "XYZ" },
-        ...pageViewport.convertToPdfPoint(
+    if (pageNode) {
+      const targetTop =
+        pageNode.offsetTop +
+        viewportRect.top -
+        (container.clientHeight - viewportRect.height) / 2;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      container.scrollTop = Math.max(0, Math.min(maxScroll, targetTop));
+    } else {
+      this.viewer.scrollPageIntoView({
+        pageNumber,
+        destArray: [
+          null,
+          { name: "XYZ" },
+          ...pageViewport.convertToPdfPoint(0, viewportRect.top),
           0,
-          scaledToViewport(boundingRect, pageViewport, usePdfCoordinates).top -
-            scrollMargin,
-        ),
-        0,
-      ],
-    });
+        ],
+      });
+    }
 
     this.setState(
       {
@@ -529,6 +549,16 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       },
       () => this.renderHighlightLayers(),
     );
+
+    if (this.flashTimeout) {
+      clearTimeout(this.flashTimeout);
+    }
+    this.flashTimeout = setTimeout(() => {
+      this.flashTimeout = null;
+      this.setState({ scrolledToHighlightId: EMPTY_ID }, () =>
+        this.renderHighlightLayers(),
+      );
+    }, 1000);
 
     // wait for scrolling to finish
     setTimeout(() => {
@@ -724,7 +754,8 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     screenshot: (position: LTWH) => string,
     isScrolledTo: boolean,
   ) => {
-    const { onUpdate, renderPopup } = this.props;
+    const { onUpdate, renderPopup, onHighlightHover, onHighlightBlur } =
+      this.props;
     const isTextHighlight = !highlight.content?.image;
     const popupContent = renderPopup
       ? renderPopup(highlight)
@@ -732,16 +763,34 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
         ? <div className={styles.popup}>{highlight.comment}</div>
         : null;
 
+    const handleMouseEnter = () => {
+      onHighlightHover?.(highlight);
+      if (popupContent) {
+        this.onHighlightMouseEnter(highlight, popupContent);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      onHighlightBlur?.(highlight);
+      if (popupContent) {
+        this.onHighlightMouseLeave();
+      }
+    };
+
     const component = isTextHighlight ? (
       <Highlight
         isScrolledTo={isScrolledTo}
         position={highlight.position}
         comment={highlight.comment}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       />
     ) : (
       <AreaHighlight
         isScrolledTo={isScrolledTo}
         highlight={highlight}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onChange={(boundingRect) => {
           if (!onUpdate) {
             return;
@@ -764,27 +813,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       />
     );
 
-    if (!popupContent) {
-      return <React.Fragment key={index}>{component}</React.Fragment>;
-    }
-
-    const handleMouseEnter = () => {
-      this.onHighlightMouseEnter(highlight, popupContent);
-    };
-
-    const handleMouseLeave = () => {
-      this.onHighlightMouseLeave();
-    };
-
-    return (
-      <div
-        key={index}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {component}
-      </div>
-    );
+    return <React.Fragment key={index}>{component}</React.Fragment>;
   };
 
   render() {
