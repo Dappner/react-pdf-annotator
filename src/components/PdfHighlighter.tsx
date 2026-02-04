@@ -1,11 +1,8 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFViewer } from "pdfjs-dist/legacy/web/pdf_viewer.mjs";
 import type { PDFViewerOptions } from "pdfjs-dist/types/web/pdf_viewer";
-import React, {
-  type PointerEventHandler,
-  PureComponent,
-  type RefObject,
-} from "react";
+import * as React from "react";
+import type { PointerEventHandler, RefObject } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import { debounce } from "ts-debounce";
 import { scaledToViewport, viewportToScaled } from "../lib/coordinates";
@@ -101,7 +98,7 @@ interface Props<T_HT> extends HighlightHooks {
 
 const EMPTY_ID = "empty-id";
 
-export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
+export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent<
   Props<T_HT>,
   State<T_HT>
 > {

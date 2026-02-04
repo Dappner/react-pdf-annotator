@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import * as React from "react";
 
 interface Props {
   onMoveAway: () => void;
@@ -7,7 +7,7 @@ interface Props {
   children: JSX.Element;
 }
 
-export class MouseMonitor extends Component<Props> {
+export class MouseMonitor extends React.Component<Props> {
   container: HTMLDivElement | null = null;
   unsubscribe = () => {};
 

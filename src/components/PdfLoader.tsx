@@ -1,6 +1,6 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import React, { Component } from "react";
+import * as React from "react";
 
 interface Props {
   /** See `GlobalWorkerOptionsType`. */
@@ -20,7 +20,7 @@ interface State {
   error: Error | null;
 }
 
-export class PdfLoader extends Component<Props, State> {
+export class PdfLoader extends React.Component<Props, State> {
   state: State = {
     pdfDocument: null,
     error: null,
