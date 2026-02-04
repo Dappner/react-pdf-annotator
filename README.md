@@ -42,6 +42,8 @@ This fork includes the following enhancements:
 | `forceRenderOnLoad` | Force re-render highlights when all pages loaded |
 | `onHighlightHover` | Callback when a highlight is hovered |
 | `onHighlightBlur` | Callback when a highlight loses hover |
+| `disallowOverlappingHighlights` | Prevent creating overlapping text highlights on the same line |
+| `onOverlap` | Callback fired when a selection overlaps an existing highlight |
 
 ## Install
 

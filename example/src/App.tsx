@@ -12,7 +12,10 @@ const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021";
 export function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rawHighlights, setRawHighlights] = useState<IHighlight[]>([]);
+  const [disallowOverlap, setDisallowOverlap] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const scrollViewerTo = useRef((highlight: IHighlight) => {});
+  const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     highlights,
@@ -35,6 +38,17 @@ export function App() {
     console.log(highlights);
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+    toastTimeout.current = setTimeout(() => {
+      toastTimeout.current = null;
+      setToastMessage(null);
+    }, 1800);
+  };
+
   const handleJumpToHighlight = (highlight: IHighlight) => {
     setIsPanelOpen(true);
     setTimeout(() => scrollViewerTo.current(highlight), 100);
@@ -54,6 +68,14 @@ export function App() {
           >
             View PDF Fullscreen
           </button>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={disallowOverlap}
+              onChange={(event) => setDisallowOverlap(event.target.checked)}
+            />
+            Disallow overlapping highlights
+          </label>
         </div>
 
         <HighlightList
@@ -80,9 +102,15 @@ export function App() {
           onOpenCommentDialog={setEditingHighlight}
           onSaveComment={saveComment}
           onCancelComment={() => setEditingHighlight(null)}
+          disallowOverlappingHighlights={disallowOverlap}
+          onOverlap={() =>
+            showToast("Overlaps an existing highlight on the same line.")
+          }
           onClose={() => setIsPanelOpen(false)}
         />
       )}
+
+      {toastMessage ? <div className="toast">{toastMessage}</div> : null}
     </div>
   );
 }

@@ -32,6 +32,27 @@ body {
   margin-bottom: 2rem;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: #374151;
+}
+
+.toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
 /* Buttons */
 .btn {
   padding: 0.5rem 1rem;
@@ -123,6 +144,19 @@ body {
   margin: 0 0 0.5rem;
   color: #6b7280;
   font-size: 12px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 300;
+  background: #111827;
+  color: #f9fafb;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
 }
 
 .highlight-comment {

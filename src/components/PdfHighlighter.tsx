@@ -53,6 +53,7 @@ interface State<T_HT> {
   tipChildren: JSX.Element | null;
   tipMode: "hover" | "selection" | null;
   isAreaSelectionInProgress: boolean;
+  isTextSelectionInProgress: boolean;
   scrolledToHighlightId: string;
   isTipHovered: boolean;
   isHighlightHovered: boolean;
@@ -86,11 +87,16 @@ interface Props<T_HT> extends HighlightHooks {
     hideTipAndSelection: () => void,
     transformSelection: () => void,
   ) => JSX.Element | null;
-  enableAreaSelection: (event: MouseEvent) => boolean;
+  enableAreaSelection?: (event: MouseEvent) => boolean;
   pdfViewerOptions?: PDFViewerOptions;
   onTextLayerReady?: (pageNumber: number) => void;
   onDocumentReady?: () => void;
   forceRenderOnLoad?: boolean;
+  disallowOverlappingHighlights?: boolean;
+  onOverlap?: (payload: {
+    position: ScaledPosition;
+    overlappingHighlight: T_HT;
+  }) => void;
 }
 
 const EMPTY_ID = "empty-id";
@@ -116,6 +122,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     tipMode: null,
     isTipHovered: false,
     isHighlightHovered: false,
+    isTextSelectionInProgress: false,
   };
 
   viewer!: PDFViewer;
@@ -610,7 +617,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 
     if (selection.isCollapsed) {
-      this.setState({ isCollapsed: true });
+      this.setState({ isCollapsed: true, isTextSelectionInProgress: false });
       return;
     }
 
@@ -625,6 +632,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     this.setState({
       isCollapsed: false,
       range,
+      isTextSelectionInProgress: true,
     });
 
     // Don't call afterSelection here - wait for mouseup
@@ -682,7 +690,12 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   };
 
   afterSelection = () => {
-    const { onSelectionFinished, onCreate } = this.props;
+    const {
+      onSelectionFinished,
+      onCreate,
+      disallowOverlappingHighlights,
+      onOverlap,
+    } = this.props;
 
     const { isCollapsed, range } = this.state;
 
@@ -714,6 +727,21 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       text: range.toString(),
     };
     const scaledPosition = this.viewportPositionToScaled(viewportPosition);
+
+    this.setState({ isTextSelectionInProgress: false });
+
+    if (disallowOverlappingHighlights) {
+      const overlap = this.findTextOverlap(rects, this.props.highlights);
+      if (overlap) {
+        onOverlap?.({
+          position: scaledPosition,
+          overlappingHighlight: overlap,
+        });
+        getWindow(this.containerNode!).getSelection()?.removeAllRanges();
+        this.hideTipAndSelection();
+        return;
+      }
+    }
 
     if (!onSelectionFinished) {
       if (onCreate) {
@@ -754,6 +782,69 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       return;
     }
     this.viewer.viewer.classList.toggle(styles.disableSelection, flag);
+  }
+
+  private rectsOverlapSameLine(a: LTWHP, b: LTWHP) {
+    const aBottom = a.top + a.height;
+    const bBottom = b.top + b.height;
+    const aRight = a.left + a.width;
+    const bRight = b.left + b.width;
+
+    const overlapY = Math.min(aBottom, bBottom) - Math.max(a.top, b.top);
+    const minHeight = Math.min(a.height, b.height);
+    const sameLine = overlapY >= minHeight * 0.5;
+
+    if (!sameLine) {
+      return false;
+    }
+
+    const overlapX = Math.min(aRight, bRight) - Math.max(a.left, b.left);
+    return overlapX > 0;
+  }
+
+  private getViewportRectsForHighlight(
+    highlight: T_HT,
+    pageNumber: number,
+  ): LTWHP[] {
+    if (highlight.content?.image) {
+      return [];
+    }
+
+    const pageView = this.viewer.getPageView(pageNumber - 1);
+    if (!pageView) {
+      return [];
+    }
+
+    const viewport = pageView.viewport;
+    const { rects, boundingRect, usePdfCoordinates } = highlight.position;
+    const sourceRects = rects && rects.length > 0 ? rects : [boundingRect];
+
+    return sourceRects
+      .filter(
+        (rect) =>
+          (rect.pageNumber ?? highlight.position.pageNumber) === pageNumber,
+      )
+      .map((rect) => scaledToViewport(rect, viewport, usePdfCoordinates));
+  }
+
+  private findTextOverlap(rects: LTWHP[], highlights: T_HT[]) {
+    for (const rect of rects) {
+      if (!rect.pageNumber) {
+        continue;
+      }
+      for (const highlight of highlights) {
+        const highlightRects = this.getViewportRectsForHighlight(
+          highlight,
+          rect.pageNumber,
+        );
+        for (const highlightRect of highlightRects) {
+          if (this.rectsOverlapSameLine(rect, highlightRect)) {
+            return highlight;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   handleScaleValue = () => {
@@ -857,7 +948,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       <div onPointerDown={this.onMouseDown}>
         <div
           ref={this.containerNodeRef}
-          className={styles.container}
+          className={`${styles.container} ${
+            this.state.isTextSelectionInProgress ? styles.isSelecting : ""
+          }`}
           onContextMenu={(e) => e.preventDefault()}
         >
           <div className="pdfViewer" />

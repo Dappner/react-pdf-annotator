@@ -24,3 +24,8 @@
   user-select: none;
   pointer-events: none;
 }
+
+.isSelecting :global(.Highlight__part),
+.isSelecting :global(.Highlight__comment-icon) {
+  pointer-events: none;
+}

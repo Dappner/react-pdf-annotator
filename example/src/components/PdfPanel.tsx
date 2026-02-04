@@ -21,6 +21,8 @@ interface PdfPanelProps {
   onOpenCommentDialog: (highlight: IHighlight) => void;
   onSaveComment: (highlightId: string, comment: string) => void;
   onCancelComment: () => void;
+  disallowOverlappingHighlights: boolean;
+  onOverlap: () => void;
   onClose: () => void;
 }
 
@@ -35,6 +37,8 @@ export function PdfPanel({
   onOpenCommentDialog,
   onSaveComment,
   onCancelComment,
+  disallowOverlappingHighlights,
+  onOverlap,
   onClose,
 }: PdfPanelProps) {
   const pdfContainerRef = useRef<HTMLDivElement>(null);
@@ -85,6 +89,8 @@ export function PdfPanel({
                 enableAreaSelection={(event) => event.altKey}
                 onScrollChange={() => {}}
                 scrollRef={scrollRef}
+                disallowOverlappingHighlights={disallowOverlappingHighlights}
+                onOverlap={onOverlap}
                 onSelectionFinished={(position, content, hideTipAndSelection) => (
                   <SelectionActionBar
                     position={position}
