@@ -131,7 +131,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   flashTimeout: ReturnType<typeof setTimeout> | null = null;
   textLayerRenderedPages = new Set<number>();
   hasRenderedOnLoad = false;
-  unsubscribe = () => {};
+  unsubscribe = () => { };
 
   constructor(props: Props<T_HT>) {
     super(props);
