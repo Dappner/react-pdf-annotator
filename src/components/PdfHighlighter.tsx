@@ -260,7 +260,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     if (textLayer.div.lastElementChild !== layer) {
       textLayer.div.appendChild(layer);
     }
-    layer.style.zIndex = "5";
+    if (layer instanceof HTMLElement) {
+      layer.style.zIndex = "5";
+    }
 
     return layer;
   }
