@@ -131,7 +131,7 @@ This pattern lets you merge/split your own persistence models in `setHighlights`
 import { useRef } from "react";
 import { useZoom } from "react-pdf-highlighter";
 
-const containerRef = useRef<HTMLDivElement>(null);
+const containerRef = useRef<HTMLDivElement | null>(null);
 const { pdfScaleValue, zoomLabel, zoomIn, zoomOut, fitWidth } = useZoom(
   containerRef,
   true,

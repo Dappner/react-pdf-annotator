@@ -5,7 +5,10 @@ const MAX_SCALE = 3;
 const BUTTON_STEP = 0.1;
 const WHEEL_SENSITIVITY = 0.0008;
 
-export function useZoom(containerRef: RefObject<HTMLElement>, isActive: boolean) {
+export function useZoom<T extends HTMLElement>(
+  containerRef: RefObject<T | null>,
+  isActive: boolean,
+) {
   const [pdfScaleValue, setPdfScaleValue] = useState<string>("page-width");
 
   const clampScale = useCallback((value: number) => {
