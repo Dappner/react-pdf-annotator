@@ -12,17 +12,15 @@ export default defineConfig({
     }),
   ],
   build: {
+    outDir: "dist",
+    emptyOutDir: true,
     minify: false,
     lib: {
       entry: "./src/index.ts",
       formats: ["es"],
-      fileName: (format, entryName) => `${entryName}.js`,
+      fileName: () => "index.js",
     },
     rollupOptions: {
-      output: {
-        preserveModules: true,
-        preserveModulesRoot: "src",
-      },
       external: (id) => {
         if (id === "react" || id.startsWith("react/")) return true;
         if (id === "react-dom" || id.startsWith("react-dom/")) return true;
