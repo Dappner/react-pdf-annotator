@@ -74,6 +74,7 @@ interface Props<T_HT> extends HighlightHooks {
   renderPopup?: (highlight: T_ViewportHighlight<T_HT>) => JSX.Element | null;
   onHighlightHover?: (highlight: T_ViewportHighlight<T_HT>) => void;
   onHighlightBlur?: (highlight: T_ViewportHighlight<T_HT>) => void;
+  debug?: boolean;
   highlights: Array<T_HT>;
   onScrollChange: () => void;
   scrollRef: (scrollTo: (highlight: T_HT) => void) => void;
@@ -242,11 +243,19 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       return null;
     }
 
-    return findOrCreateContainerLayer(
+    const layer = findOrCreateContainerLayer(
       textLayer.div,
       `PdfHighlighter__highlight-layer ${styles.highlightLayer}`,
       ".PdfHighlighter__highlight-layer",
     );
+
+    // Keep the highlight layer above text spans (PDF.js can re-append spans).
+    if (textLayer.div.lastElementChild !== layer) {
+      textLayer.div.appendChild(layer);
+    }
+    layer.style.zIndex = "5";
+
+    return layer;
   }
 
   groupHighlightsByPage(highlights: Array<T_HT>): {
@@ -767,7 +776,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     screenshot: (position: LTWH) => string,
     isScrolledTo: boolean,
   ) => {
-    const { onUpdate, renderPopup, onHighlightHover, onHighlightBlur } =
+    const { onUpdate, renderPopup, onHighlightHover, onHighlightBlur, debug } =
       this.props;
     const isTextHighlight = !highlight.content?.image;
     const popupContent = renderPopup
@@ -777,6 +786,12 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
         : null;
 
     const handleMouseEnter = () => {
+      if (debug) {
+        console.log("[PdfHighlighter] hover enter", {
+          id: highlight.id,
+          pageNumber: highlight.position.pageNumber,
+        });
+      }
       onHighlightHover?.(highlight);
       if (popupContent) {
         this.onHighlightMouseEnter(highlight, popupContent);
@@ -784,6 +799,12 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     };
 
     const handleMouseLeave = () => {
+      if (debug) {
+        console.log("[PdfHighlighter] hover leave", {
+          id: highlight.id,
+          pageNumber: highlight.position.pageNumber,
+        });
+      }
       onHighlightBlur?.(highlight);
       if (popupContent) {
         this.onHighlightMouseLeave();

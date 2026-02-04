@@ -81,6 +81,7 @@ export function PdfPanel({
               <PdfHighlighter
                 pdfDocument={pdfDocument}
                 pdfScaleValue={pdfScaleValue}
+                debug
                 enableAreaSelection={(event) => event.altKey}
                 onScrollChange={() => {}}
                 scrollRef={scrollRef}
