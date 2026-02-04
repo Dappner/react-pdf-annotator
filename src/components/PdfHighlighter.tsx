@@ -51,6 +51,7 @@ interface State<T_HT> {
   } | null;
   tipPosition: Position | null;
   tipChildren: JSX.Element | null;
+  tipMode: "hover" | "selection" | null;
   isAreaSelectionInProgress: boolean;
   scrolledToHighlightId: string;
   isTipHovered: boolean;
@@ -111,6 +112,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     tip: null,
     tipPosition: null,
     tipChildren: null,
+    tipMode: null,
     isTipHovered: false,
     isHighlightHovered: false,
   };
@@ -308,7 +310,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       return;
     }
 
-    this.setTip(highlight.position, content);
+    this.setTip(highlight.position, content, "hover");
   }
 
   scaledPositionToViewport({
@@ -362,6 +364,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     this.setState({
       tipPosition: null,
       tipChildren: null,
+      tipMode: null,
       isTipHovered: false,
       isHighlightHovered: false,
     });
@@ -371,10 +374,15 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
     );
   };
 
-  setTip(position: Position, inner: JSX.Element | null) {
+  setTip(
+    position: Position,
+    inner: JSX.Element | null,
+    mode: "hover" | "selection" = "hover",
+  ) {
     this.setState({
       tipPosition: position,
       tipChildren: inner,
+      tipMode: mode,
     });
   }
 
@@ -411,7 +419,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
       this.showTipTimeout = null;
       // Only show if still hovered
       if (this.state.isHighlightHovered || this.state.isTipHovered) {
-        this.setTip(highlight.position, popupContent);
+        this.setTip(highlight.position, popupContent, "hover");
       }
     }, 200);
   };
@@ -427,6 +435,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
   };
 
   scheduleHideTip = () => {
+    if (this.state.tipMode !== "hover") {
+      return;
+    }
     if (this.hideTipTimeout) {
       clearTimeout(this.hideTipTimeout);
     }
@@ -439,6 +450,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
         this.setState({
           tipPosition: null,
           tipChildren: null,
+          tipMode: null,
         });
       }
     }, 150);
@@ -723,6 +735,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
           );
         },
       ),
+      "selection",
     );
   };
 
@@ -904,6 +917,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends PureComponent<
                       );
                     },
                   ),
+                  "selection",
                 );
               }}
             />
