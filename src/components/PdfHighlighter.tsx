@@ -133,9 +133,11 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
   showTipTimeout: ReturnType<typeof setTimeout> | null = null;
   hideTipTimeout: ReturnType<typeof setTimeout> | null = null;
   flashTimeout: ReturnType<typeof setTimeout> | null = null;
+  fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
   textLayerRenderedPages = new Set<number>();
   hasRenderedOnLoad = false;
   unsubscribe = () => { };
+  initId = 0; // Track which init() call is current
 
   constructor(props: Props<T_HT>) {
     super(props);
@@ -195,36 +197,79 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
   }
 
   async init() {
+    // Increment initId to track this specific init call
+    // This handles React Strict Mode double-mounting
+    const currentInitId = ++this.initId;
+
     const { pdfDocument, pdfViewerOptions } = this.props;
     const pdfjs = await import("pdfjs-dist/web/pdf_viewer.mjs");
 
-    const eventBus = new pdfjs.EventBus();
-    const linkService = new pdfjs.PDFLinkService({
-      eventBus,
-      externalLinkTarget: 2,
-    });
-
-    if (!this.containerNodeRef.current) {
-      throw new Error("!");
+    // If another init() was called while we were awaiting, abort this one
+    if (currentInitId !== this.initId) {
+      return;
     }
 
-    this.viewer =
-      this.viewer ||
-      new pdfjs.PDFViewer({
+    if (!this.containerNodeRef.current) {
+      throw new Error("Container ref not available");
+    }
+
+    let eventBus: EventBus;
+
+    // Reuse existing viewer if available, but get its event bus for listeners
+    if (this.viewer) {
+      // Use the existing viewer's event bus
+      eventBus = this.viewer.eventBus;
+    } else {
+      // Create new viewer
+      eventBus = new pdfjs.EventBus();
+      const linkService = new pdfjs.PDFLinkService({
+        eventBus,
+        externalLinkTarget: 2,
+      });
+
+      this.viewer = new pdfjs.PDFViewer({
         container: this.containerNodeRef.current,
         eventBus: eventBus,
-        // enhanceTextSelection: true, // deprecated. https://github.com/mozilla/pdf.js/issues/9943#issuecomment-409369485
         textLayerMode: 2,
         removePageBorders: true,
         linkService: linkService,
         ...pdfViewerOptions,
       });
 
-    linkService.setDocument(pdfDocument);
-    linkService.setViewer(this.viewer);
+      linkService.setDocument(pdfDocument);
+      linkService.setViewer(this.viewer);
+    }
+
+    // Attach event listeners to the correct event bus
+    this.attachRef(eventBus);
+
     this.viewer.setDocument(pdfDocument);
 
-    this.attachRef(eventBus);
+    // Clear any previous fallback timeout
+    if (this.fallbackTimeout) {
+      clearTimeout(this.fallbackTimeout);
+    }
+
+    // Fallback: Check for already-rendered text layers after layout stabilizes
+    // This handles cases where textlayerrendered events are missed due to
+    // React Strict Mode double-mounting or fast cached PDFs
+    this.fallbackTimeout = setTimeout(() => {
+      // Abort if a newer init() was called
+      if (currentInitId !== this.initId) return;
+
+      const numPages = pdfDocument.numPages;
+      let foundAny = false;
+      for (let i = 1; i <= numPages; i++) {
+        const pageView = this.viewer.getPageView(i - 1);
+        if (pageView?.textLayer?.div && !this.textLayerRenderedPages.has(i)) {
+          this.textLayerRenderedPages.add(i);
+          foundAny = true;
+        }
+      }
+      if (foundAny || this.textLayerRenderedPages.size > 0) {
+        this.renderHighlightLayers();
+      }
+    }, 1000);
   }
 
   componentWillUnmount() {
@@ -237,6 +282,9 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     }
     if (this.flashTimeout) {
       clearTimeout(this.flashTimeout);
+    }
+    if (this.fallbackTimeout) {
+      clearTimeout(this.fallbackTimeout);
     }
   }
 
@@ -597,7 +645,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     const { scrollRef, onDocumentReady } = this.props;
 
     this.handleScaleValue();
-    this.viewer.forceRendering();
 
     scrollRef(this.scrollTo);
     onDocumentReady?.();
@@ -948,9 +995,8 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
       <div onPointerDown={this.onMouseDown}>
         <div
           ref={this.containerNodeRef}
-          className={`${styles.container} ${
-            this.state.isTextSelectionInProgress ? styles.isSelecting : ""
-          }`}
+          className={`${styles.container} ${this.state.isTextSelectionInProgress ? styles.isSelecting : ""
+            }`}
           onContextMenu={(e) => e.preventDefault()}
         >
           <div className="pdfViewer" />
