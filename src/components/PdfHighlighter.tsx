@@ -597,6 +597,7 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     const { scrollRef, onDocumentReady } = this.props;
 
     this.handleScaleValue();
+    this.viewer.forceRendering();
 
     scrollRef(this.scrollTo);
     onDocumentReady?.();
