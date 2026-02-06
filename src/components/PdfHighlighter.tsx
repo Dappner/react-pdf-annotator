@@ -685,7 +685,13 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     // Don't call afterSelection here - wait for mouseup
   };
 
-  onMouseUp = () => {
+  onMouseUp = (event: MouseEvent) => {
+    if (event.target instanceof Element) {
+      // Ignore mouseup from tip/action bar interactions.
+      if (event.target.closest("#PdfHighlighter__tip-container")) {
+        return;
+      }
+    }
     const { isCollapsed, range } = this.state;
 
     // Only process if we have a valid selection
@@ -742,11 +748,18 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
       onCreate,
       disallowOverlappingHighlights,
       onOverlap,
+      debug,
     } = this.props;
 
     const { isCollapsed, range } = this.state;
 
     if (!range || isCollapsed) {
+      if (debug) {
+        console.log("[PdfHighlighter] afterSelection skipped", {
+          hasRange: Boolean(range),
+          isCollapsed,
+        });
+      }
       return;
     }
 
@@ -759,6 +772,11 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     const rects = getClientRects(range, pages);
 
     if (rects.length === 0) {
+      if (debug) {
+        console.log("[PdfHighlighter] afterSelection no rects", {
+          pageCount: pages.length,
+        });
+      }
       return;
     }
 
@@ -778,8 +796,20 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
     this.setState({ isTextSelectionInProgress: false });
 
     if (disallowOverlappingHighlights) {
+      if (debug) {
+        console.log("[PdfHighlighter] checking overlap", {
+          rectCount: rects.length,
+          highlightsCount: this.props.highlights.length,
+          pageNumber: pages[0].number,
+        });
+      }
       const overlap = this.findTextOverlap(rects, this.props.highlights);
       if (overlap) {
+        if (debug) {
+          console.log("[PdfHighlighter] overlap detected", {
+            overlappingHighlightId: overlap.id,
+          });
+        }
         onOverlap?.({
           position: scaledPosition,
           overlappingHighlight: overlap,
@@ -1062,7 +1092,6 @@ export class PdfHighlighter<T_HT extends IHighlight> extends React.PureComponent
                     { image },
                     () => this.hideTipAndSelection(),
                     () => {
-                      console.log("setting ghost highlight", scaledPosition);
                       this.setState(
                         {
                           ghostHighlight: {
